@@ -52,25 +52,113 @@ class Custom_Roles {
             'manager'   => 1            
         ), $atts);
 
+        // $paged = get_query_var('paged') ? get_query_var('paged') : 1;
+        $paged = ( get_query_var( 'paged' ) ) ? absint( get_query_var( 'paged' ) ) : 1;
+        $user_per_page = 2;
+        $offset = ($paged - 1) * $user_per_page; //page offset
+                
         if( $arr_atts['staff'] == 1 && $arr_atts['manager'] == 1) {
-            $user_query = new WP_User_Query( array( 'role__in' => array('staff', 'manager') ) );
+            $users = get_users(array('role__in'  => array('staff', 'manager')));
+            $user_query = new WP_User_Query( 
+                array( 
+                    'role__in'  => array('staff', 'manager'), 
+                    'number'    => $user_per_page,
+                    'paged'     => $paged
+                )
+             );
         } else if( $arr_atts['staff'] == 1) {
-            $user_query = new WP_User_Query( array( 'role' => 'staff' ) );
+            $users = get_users(array('role' => 'staff'));
+            $user_query = new WP_User_Query( 
+                array( 
+                    'role' => 'staff', 
+                    'number'    => $user_per_page,
+                    'paged'     => $crnt_page
+                ) 
+            );
         } else {
-            $user_query = new WP_User_Query( array( 'role' => 'manager' ) );
+            $users = get_users(array('role' => 'manager'));
+            $user_query = new WP_User_Query( 
+                array(
+                    'role' => 'manager', 
+                    'number'    => $user_per_page,
+                    'paged'     => $crnt_page
+                ) 
+            );
         }
-        // The Query
         
-
+        $total_users = count($users);
+        $total_query = count($user_query->get_results());
+        $total_pages = ($total_users / $user_per_page);
+        
         // User Loop
         if ( ! empty( $user_query->get_results() ) ) {
-            echo "<ul>";
+        ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+        <?php
             foreach ( $user_query->get_results() as $user ) {
-                echo '<li>' . $user->display_name . '</li>';
+                $first_name = $user->first_name;
+                $last_name  = $user->last_name;
+                $email      = $user->user_email;
+                ?>
+                    <tr>
+                        <td><?php echo esc_html($first_name); ?></td>
+                        <td><?php echo esc_html($last_name); ?></td>
+                        <td><?php echo esc_html($email); ?></td>
+                    </tr>   
+                <?php
             }
-            echo "</ul>";
+        ?>
+                </tbody>
+            </table>
+
+            <p>
+            <?php 
+                if($total_users > $total_query) {
+                    $big = 99999999;
+                    echo '<div id="support-pagination" class="clearfix">';
+                    $current_page = max(1, get_query_var( 'paged' ));
+                    echo paginate_links( array(
+                        'base' => get_pagenum_link( 1 ) . '%_%',                        
+                        'format' => '?paged=%#%',
+                        'current' => $current_page,
+                        'total' => $total_pages,
+                        'prev_next' => false,
+                        'type' => 'plain'
+                    ));
+                    echo '</div>';
+                }
+                
+            ?>
+            
+            </p>
+        <?php
+
+
         } else {
-            echo 'No users found.';
+        ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="3">No users found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        <?php            
         }
     }
 
