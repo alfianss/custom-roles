@@ -52,11 +52,17 @@ class Custom_Roles {
             'manager'   => 1            
         ), $atts);
 
-        // $paged = get_query_var('paged') ? get_query_var('paged') : 1;
-        $paged = ( get_query_var( 'paged' ) ) ? absint( get_query_var( 'paged' ) ) : 1;
+        if ( get_query_var('paged') ) {
+            $paged = get_query_var('paged'); 
+        } elseif ( get_query_var('page') ) { 
+            $paged = get_query_var('page'); 
+        } else { 
+            $paged = 1; 
+        }
+        
+
         $user_per_page = 2;
-        $offset = ($paged - 1) * $user_per_page; //page offset
-                
+        
         if( $arr_atts['staff'] == 1 && $arr_atts['manager'] == 1) {
             $users = get_users(array('role__in'  => array('staff', 'manager')));
             $user_query = new WP_User_Query( 
@@ -65,14 +71,14 @@ class Custom_Roles {
                     'number'    => $user_per_page,
                     'paged'     => $paged
                 )
-             );
+            );
         } else if( $arr_atts['staff'] == 1) {
             $users = get_users(array('role' => 'staff'));
             $user_query = new WP_User_Query( 
                 array( 
                     'role' => 'staff', 
                     'number'    => $user_per_page,
-                    'paged'     => $crnt_page
+                    'paged'     => $paged,
                 ) 
             );
         } else {
@@ -81,7 +87,7 @@ class Custom_Roles {
                 array(
                     'role' => 'manager', 
                     'number'    => $user_per_page,
-                    'paged'     => $crnt_page
+                    'paged'     => $paged,
                 ) 
             );
         }
@@ -90,7 +96,6 @@ class Custom_Roles {
         $total_query = count($user_query->get_results());
         $total_pages = ($total_users / $user_per_page);
         
-        // User Loop
         if ( ! empty( $user_query->get_results() ) ) {
         ?>
             <table>
@@ -120,28 +125,21 @@ class Custom_Roles {
             </table>
 
             <p>
-            <?php 
+            <?php                 
+
                 if($total_users > $total_query) {
-                    $big = 99999999;
-                    echo '<div id="support-pagination" class="clearfix">';
-                    $current_page = max(1, get_query_var( 'paged' ));
-                    echo paginate_links( array(
-                        'base' => get_pagenum_link( 1 ) . '%_%',                        
-                        'format' => '?paged=%#%',
-                        'current' => $current_page,
-                        'total' => $total_pages,
-                        'prev_next' => false,
-                        'type' => 'plain'
-                    ));
-                    echo '</div>';
-                }
-                
-            ?>
-            
+                    $current_page = max(1, is_front_page() ? get_query_var('page') : get_query_var('paged')); // key
+                    echo paginate_links( 
+                        array(                        
+                            'current' => $paged,
+                            'total' => $total_pages,
+                            'prev_next' => false,
+                        )
+                    );                    
+                }           
+            ?>            
             </p>
         <?php
-
-
         } else {
         ?>
             <table>
@@ -160,7 +158,9 @@ class Custom_Roles {
             </table>
         <?php            
         }
+        wp_reset_postdata();
     }
+      
 
 }
 
