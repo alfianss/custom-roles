@@ -8,13 +8,7 @@ Author: Alfian SS
 Author URI: http://example.com
 */
 
-class Custom_Roles {
-
-    public $custom_roles_version = '1.0';
-
-	public function custom_roles_version() {
-		return $this->custom_roles_version;		
-	}
+class Custom_Roles {    
 
     public function update_custom_rules() {
         
@@ -63,8 +57,7 @@ class Custom_Roles {
             )
         );    
         
-        $total_users = $user_query->get_total();
-        $total_query = count($user_query->get_results());
+        $total_users = $user_query->get_total();        
         $total_pages = ($total_users / $user_per_page);
         ?>
 
@@ -106,11 +99,10 @@ class Custom_Roles {
                             'total' => $total_pages,
                             'prev_next' => false,
                         )
-                    );  
-                       
+                    );                         
             ?>            
             </p>
-        <?php  
+            <?php  
             } else { 
             ?>
                 <tr>
