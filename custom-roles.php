@@ -42,41 +42,26 @@ class Custom_Roles {
 
     public function roles_shortcode( $atts = array() ) {
 
+        $args = array();
         // set up default parameters
         $arr_atts = shortcode_atts(array(
             'staff'  => 1,
             'manager'   => 1            
         ), $atts);
 
-        $paged = max(1, is_front_page() ? get_query_var('page') : get_query_var('paged')); 
-        
+        $paged = max(1, is_front_page() ? get_query_var('page') : get_query_var('paged'));         
         $user_per_page = 5;
+                
+        ($arr_atts['staff'] == 1 ) ? array_push($args, 'staff') : $args;
+        ($arr_atts['manager'] == 1 ) ? array_push($args, 'manager') : $args;
         
-        if( $arr_atts['staff'] == 1 && $arr_atts['manager'] == 1) {
-            $user_query = new WP_User_Query( 
-                array( 
-                    'role__in'  => array('staff', 'manager'), 
-                    'number'    => $user_per_page,
-                    'paged'     => $paged
-                )
-            );
-        } else if( $arr_atts['staff'] == 1) {
-            $user_query = new WP_User_Query( 
-                array( 
-                    'role' => 'staff', 
-                    'number'    => $user_per_page,
-                    'paged'     => $paged,
-                ) 
-            );
-        } else {
-            $user_query = new WP_User_Query( 
-                array(
-                    'role' => 'manager', 
-                    'number'    => $user_per_page,
-                    'paged'     => $paged,
-                ) 
-            );
-        }
+        $user_query = new WP_User_Query( 
+            array( 
+                'role__in'  => $args, 
+                'number'    => $user_per_page,
+                'paged'     => $paged
+            )
+        );    
         
         $total_users = $user_query->get_total();
         $total_query = count($user_query->get_results());
